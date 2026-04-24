@@ -24,11 +24,29 @@ export default function CircularProgress({
   const offset = circumference - (progress / 100) * circumference;
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setProgress(percentage);
-    }, 100);
-    return () => clearTimeout(timeout);
-  }, [percentage]);
+    let startTime: number;
+    let animationFrame: number;
+    const startValue = 0;
+    const endValue = percentage;
+    const durationMs = duration * 1000;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progressTime = timestamp - startTime;
+      const currentProgress = Math.min(progressTime / durationMs, 1);
+      
+      // Easing function for count up (easeOutQuad)
+      const easedProgress = 1 - (1 - currentProgress) * (1 - currentProgress);
+      setProgress(startValue + easedProgress * (endValue - startValue));
+
+      if (currentProgress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [percentage, duration]);
 
   return (
     <div className="relative flex items-center justify-center p-4" style={{ width: size + 40, height: size + 40 }}>
@@ -56,7 +74,7 @@ export default function CircularProgress({
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration, type: "spring", bounce: 0.3 }}
+          transition={{ duration, type: "spring", bounce: 0.4, stiffness: 60 }}
           strokeLinecap="round"
         />
       </svg>

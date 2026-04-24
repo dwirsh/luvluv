@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Stars, RotateCcw, Sparkles, Cookie, Candy } from "lucide-react";
 import CircularProgress from "./components/CircularProgress";
+import confetti from "canvas-confetti";
 
 type AppState = "IDLE" | "SCANNING" | "RESULT";
 
@@ -12,6 +13,9 @@ export default function LoveMeterPage() {
   const [p2, setP2] = useState("");
   const [state, setState] = useState<AppState>("IDLE");
   const [score, setScore] = useState(0);
+  const [shuffledName, setShuffledName] = useState("");
+
+  const cuteNames = ["Sweetie", "Cutie", "Honey", "Bae", "Darling", "Mochi", "Cupcake", "Star", "Luv"];
 
   const calculateScore = (name1: string, name2: string) => {
     const combined = (name1 + name2).toLowerCase().replace(/\s/g, "");
@@ -28,9 +32,24 @@ export default function LoveMeterPage() {
     setState("SCANNING");
     const result = calculateScore(p1, p2);
     setScore(result);
+    
+    // Shuffling animation
+    let shuffleInterval = setInterval(() => {
+      setShuffledName(cuteNames[Math.floor(Math.random() * cuteNames.length)]);
+    }, 150);
+
     setTimeout(() => {
+      clearInterval(shuffleInterval);
       setState("RESULT");
-    }, 2500);
+      if (result >= 80) {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ["#FF4B91", "#FFCD4B", "#FF7676", "#FFFFFF"]
+        });
+      }
+    }, 3000); // Increased slightly for more suspense
   };
 
   const reset = () => {
@@ -128,22 +147,59 @@ export default function LoveMeterPage() {
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                className="w-48 h-48 border-[8px] border-dashed border-primary rounded-full"
+                className="w-48 h-48 border-[8px] border-dashed border-primary rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
               />
               <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-                className="absolute inset-0 flex items-center justify-center text-8xl"
+                animate={{ 
+                  scale: [1, 1.2, 0.9, 1.1, 1],
+                  rotate: [0, 5, -5, 5, 0]
+                }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+                className="text-8xl relative z-10"
               >
                 💖
+              </motion.div>
+              
+              {/* Floating Sparkles */}
+              <motion.div
+                animate={{ 
+                  y: [-20, 20],
+                  x: [-10, 10],
+                  opacity: [0, 1, 0]
+                }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                className="absolute -top-4 -right-4 text-3xl"
+              >
+                ✨
+              </motion.div>
+              <motion.div
+                animate={{ 
+                  y: [20, -20],
+                  x: [10, -10],
+                  opacity: [0, 1, 0]
+                }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                className="absolute -bottom-4 -left-4 text-3xl"
+              >
+                🌟
               </motion.div>
             </div>
             <div className="text-center">
               <h2 className="text-3xl font-black italic tracking-wide text-primary animate-pulse">FINDING THE VIBE...</h2>
-              <div className="flex gap-3 justify-center mt-4">
-                <span className="bg-secondary px-4 py-2 rounded-2xl border-4 border-border font-black text-sm uppercase">{p1}</span>
-                <span className="text-2xl self-center">+</span>
-                <span className="bg-accent px-4 py-2 rounded-2xl border-4 border-border font-black text-sm uppercase">{p2}</span>
+              <div className="flex flex-col items-center gap-3 mt-6">
+                <div className="flex gap-3 justify-center items-center">
+                  <span className="bg-secondary px-4 py-2 rounded-2xl border-4 border-border font-black text-sm uppercase shadow-[4px_4px_0px_var(--border)]">{p1}</span>
+                  <span className="text-2xl font-black text-primary">SCANNING</span>
+                  <span className="bg-accent px-4 py-2 rounded-2xl border-4 border-border font-black text-sm uppercase shadow-[4px_4px_0px_var(--border)]">{p2}</span>
+                </div>
+                <motion.div 
+                  key={shuffledName}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  className="text-primary font-black text-xs bg-white border-2 border-border px-3 py-1 rounded-full"
+                >
+                  STATUS: {shuffledName} matches detected!
+                </motion.div>
               </div>
             </div>
             <div className="w-full h-8 bg-border rounded-full overflow-hidden p-1">
